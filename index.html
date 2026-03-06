@@ -1,0 +1,1064 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>X投稿分析 データ入力 | MIGIUDE</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+JP:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --primary-900: #020617;
+  --primary-800: #0f172a;
+  --primary-700: #1e293b;
+  --primary-600: #1e40af;
+  --primary-500: #2563eb;
+  --primary-400: #3b82f6;
+  --primary-300: #60a5fa;
+  --primary-200: #93c5fd;
+  --primary-100: #dbeafe;
+  --primary-50: #eff6ff;
+  --gray-900: #0f172a;
+  --gray-800: #1e293b;
+  --gray-700: #334155;
+  --gray-600: #475569;
+  --gray-500: #64748b;
+  --gray-400: #94a3b8;
+  --gray-300: #cbd5e1;
+  --gray-200: #e2e8f0;
+  --gray-100: #f1f5f9;
+  --gray-50: #f8fafc;
+  --white: #ffffff;
+  --red-500: #ef4444;
+  --green-500: #22c55e;
+  --green-400: #4ade80;
+  --amber-500: #f59e0b;
+  --purple-500: #8b5cf6;
+  --radius-lg: 16px;
+  --radius: 12px;
+  --radius-sm: 8px;
+  --shadow: 0 4px 6px -1px rgba(0,0,0,0.07), 0 2px 4px -2px rgba(0,0,0,0.05);
+  --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+body {
+  font-family: 'Inter', 'Noto Sans JP', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: #f0f2f5;
+  color: var(--gray-900);
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+}
+
+/* ── Hero ── */
+.hero {
+  background: var(--primary-900);
+  color: var(--white);
+  text-align: center;
+  padding: 32px 20px 36px;
+  position: relative;
+  overflow: hidden;
+}
+.hero::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background:
+    radial-gradient(ellipse 80% 60% at 20% 0%, rgba(37,99,235,0.15) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 80% at 80% 100%, rgba(139,92,246,0.1) 0%, transparent 60%);
+}
+.hero-inner { position: relative; z-index: 1; }
+.hero-company {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: var(--gray-400);
+  margin-bottom: 16px;
+}
+.hero h1 {
+  font-size: 20px;
+  font-weight: 800;
+  line-height: 1.5;
+  letter-spacing: -0.02em;
+  background: linear-gradient(135deg, var(--white) 0%, var(--primary-200) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── Progress ── */
+.progress-section {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(255,255,255,0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(0,0,0,0.06);
+}
+.progress-inner {
+  max-width: 540px;
+  margin: 0 auto;
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.progress-info {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--gray-500);
+  white-space: nowrap;
+  min-width: 90px;
+}
+.progress-info span { color: var(--primary-500); }
+.progress-bar-wrapper {
+  flex: 1;
+  height: 6px;
+  background: var(--gray-200);
+  border-radius: 100px;
+  overflow: hidden;
+}
+.progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--primary-500), var(--primary-300));
+  width: 0%;
+  border-radius: 100px;
+  transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.progress-pct {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--primary-500);
+  min-width: 32px;
+  text-align: right;
+}
+
+/* ── Container ── */
+.container {
+  max-width: 540px;
+  margin: 0 auto;
+  padding: 0 16px 100px;
+}
+
+/* ── Step panels ── */
+.step-panel { display: none; animation: fadeUp 0.35s ease; }
+.step-panel.active { display: block; }
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Step tag ── */
+.step-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--primary-500);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.step-tag::before {
+  content: '';
+  width: 16px;
+  height: 2px;
+  background: var(--primary-500);
+  border-radius: 2px;
+}
+
+/* ── Card ── */
+.card {
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow), 0 0 0 1px rgba(0,0,0,0.03);
+  padding: 28px 22px;
+  margin-top: 20px;
+}
+.card-header { margin-bottom: 24px; }
+.card-header h2 {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--gray-900);
+  margin-bottom: 4px;
+  letter-spacing: -0.01em;
+}
+.card-header p {
+  font-size: 13px;
+  color: var(--gray-500);
+  line-height: 1.6;
+}
+
+/* ── Form Fields ── */
+.field { margin-bottom: 20px; }
+.field:last-child { margin-bottom: 0; }
+.field > label,
+.field > .field-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 6px;
+  color: var(--gray-700);
+}
+.tag {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 4px;
+  margin-left: 6px;
+  vertical-align: middle;
+  position: relative;
+  top: -1px;
+}
+.tag-required { background: var(--red-500); color: var(--white); }
+.tag-optional { background: var(--gray-100); color: var(--gray-400); }
+
+.field input[type="text"],
+.field input[type="url"],
+.field input[type="number"],
+.field input[type="date"],
+.field input[type="time"],
+.field select,
+.field textarea {
+  width: 100%;
+  padding: 10px 14px;
+  font-size: 15px;
+  border: 1.5px solid var(--gray-200);
+  border-radius: var(--radius-sm);
+  background: var(--gray-50);
+  color: var(--gray-900);
+  transition: all var(--transition);
+  font-family: inherit;
+  appearance: none;
+}
+.field select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  padding-right: 38px;
+  appearance: none;
+}
+.field input::placeholder,
+.field textarea::placeholder { color: var(--gray-400); }
+.field input:focus,
+.field textarea:focus,
+.field select:focus {
+  outline: none;
+  border-color: var(--primary-500);
+  box-shadow: 0 0 0 3px rgba(37,99,235,0.08);
+  background: var(--white);
+}
+.field textarea { resize: vertical; min-height: 70px; }
+.field .hint {
+  font-size: 12px;
+  color: var(--gray-400);
+  margin-top: 4px;
+}
+
+/* ── Number grid ── */
+.number-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.number-grid .field { margin-bottom: 0; }
+
+/* ── Choice Group ── */
+.choice-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.choice-group.horizontal {
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+.choice-group.horizontal .choice-item {
+  flex: 0 0 auto;
+  padding: 8px 14px;
+}
+.choice-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 500;
+  font-size: 14px;
+  padding: 10px 14px;
+  border: 1.5px solid var(--gray-200);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--transition);
+  color: var(--gray-600);
+  user-select: none;
+  background: var(--gray-50);
+}
+.choice-item:hover {
+  background: var(--primary-50);
+  border-color: var(--primary-300);
+}
+.choice-item:has(input:checked) {
+  background: var(--primary-50);
+  border-color: var(--primary-500);
+  color: var(--primary-900);
+  box-shadow: 0 0 0 1px var(--primary-500);
+}
+.choice-item input[type="radio"] {
+  accent-color: var(--primary-500);
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+/* ── Buttons ── */
+.btn-area {
+  margin-top: 28px;
+  display: flex;
+  gap: 10px;
+}
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 13px 28px;
+  font-size: 14px;
+  font-weight: 700;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--transition);
+  font-family: inherit;
+  flex: 1;
+}
+.btn-primary {
+  color: var(--white);
+  background: linear-gradient(135deg, var(--primary-600), var(--primary-500));
+  box-shadow: 0 2px 8px rgba(37,99,235,0.25);
+}
+.btn-primary:hover { box-shadow: 0 4px 16px rgba(37,99,235,0.35); transform: translateY(-1px); }
+.btn-primary:active { transform: translateY(0); }
+.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+.btn-secondary {
+  color: var(--gray-500);
+  background: var(--white);
+  border: 1.5px solid var(--gray-200);
+  flex: 0 0 auto;
+  padding: 13px 20px;
+}
+.btn-secondary:hover { background: var(--gray-50); border-color: var(--gray-300); }
+.btn .spinner {
+  display: none;
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: var(--white);
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+.btn.loading .spinner { display: block; }
+.btn.loading .btn-text { display: none; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Error ── */
+.field.error input,
+.field.error textarea,
+.field.error select {
+  border-color: var(--red-500);
+  box-shadow: 0 0 0 3px rgba(239,68,68,0.06);
+}
+.field .error-msg {
+  display: none;
+  font-size: 12px;
+  color: var(--red-500);
+  margin-top: 4px;
+}
+.field.error .error-msg { display: block; }
+
+/* ── Results ── */
+.result-card {
+  background: linear-gradient(135deg, var(--primary-900), var(--primary-800));
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  margin-top: 16px;
+  color: var(--white);
+}
+.result-card h3 {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--primary-300);
+  margin-bottom: 12px;
+  letter-spacing: 0.06em;
+}
+.result-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  gap: 12px;
+}
+.result-item { text-align: center; }
+.result-item .label {
+  font-size: 10px;
+  color: var(--gray-400);
+  margin-bottom: 2px;
+}
+.result-item .value {
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.result-item .value.grade-s { color: #facc15; }
+.result-item .value.grade-a { color: var(--green-400); }
+.result-item .value.grade-b { color: var(--primary-300); }
+.result-item .value.grade-c { color: var(--gray-400); }
+
+/* ── Post counter ── */
+.post-counter {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 20px;
+}
+.post-counter button {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1.5px solid var(--gray-200);
+  background: var(--gray-50);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--gray-600);
+  cursor: pointer;
+  transition: all var(--transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.post-counter button:hover { border-color: var(--primary-300); background: var(--primary-50); }
+.post-counter .count {
+  font-size: 36px;
+  font-weight: 800;
+  color: var(--gray-900);
+  min-width: 48px;
+  text-align: center;
+}
+.post-counter .count-label {
+  font-size: 14px;
+  color: var(--gray-500);
+  margin-left: -8px;
+}
+
+/* ── Completion ── */
+.completion {
+  display: none;
+  text-align: center;
+  padding: 80px 20px 40px;
+}
+.completion.show { display: block; }
+.completion-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+  background: linear-gradient(135deg, var(--green-500), var(--green-400));
+  box-shadow: 0 8px 24px rgba(34,197,94,0.2);
+}
+.completion-icon svg {
+  width: 28px;
+  height: 28px;
+  stroke: var(--white);
+  fill: none;
+}
+.completion h2 {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+.completion p {
+  font-size: 14px;
+  color: var(--gray-500);
+  max-width: 380px;
+  margin: 0 auto;
+  line-height: 1.8;
+}
+
+/* ── Divider ── */
+.divider { height: 1px; background: var(--gray-100); margin: 22px 0; }
+
+/* ── Footer ── */
+.footer {
+  text-align: center;
+  padding: 24px 20px;
+  font-size: 11px;
+  color: var(--gray-400);
+}
+
+/* ── Post navigation ── */
+.post-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.post-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--gray-300);
+  transition: all var(--transition);
+}
+.post-dot.active { background: var(--primary-500); width: 24px; border-radius: 4px; }
+.post-dot.done { background: var(--green-500); }
+
+@media (min-width: 640px) {
+  .hero { padding: 40px 20px 44px; }
+  .hero h1 { font-size: 24px; }
+  .card { padding: 32px 28px; }
+  .container { padding: 0 20px 100px; }
+  .result-grid { grid-template-columns: 1fr 1fr 1fr 1fr; }
+}
+</style>
+</head>
+<body>
+
+<header class="hero" id="heroSection">
+  <div class="hero-inner">
+    <div class="hero-company">MIGIUDE</div>
+    <h1>X投稿分析 データ入力</h1>
+  </div>
+</header>
+
+<div class="progress-section" id="progressSection">
+  <div class="progress-inner">
+    <div class="progress-info" id="progressInfo">投稿 <span>0</span> / <span>0</span></div>
+    <div class="progress-bar-wrapper">
+      <div class="progress-bar-fill" id="progressFill"></div>
+    </div>
+    <div class="progress-pct" id="progressPct">0%</div>
+  </div>
+</div>
+
+<main class="container" id="formContainer">
+
+  <!-- ==================== STEP 1: 投稿数選択 ==================== -->
+  <div class="step-panel active" id="stepCount">
+    <div class="card">
+      <div class="step-tag">Start</div>
+      <div class="card-header">
+        <h2>昨日の投稿数を選択</h2>
+        <p>何投稿分のデータを入力しますか？</p>
+      </div>
+      <div class="post-counter">
+        <button type="button" id="countMinus">-</button>
+        <span class="count" id="postCount">1</span>
+        <span class="count-label">投稿</span>
+        <button type="button" id="countPlus">+</button>
+      </div>
+      <div class="btn-area">
+        <button type="button" class="btn btn-primary" id="startInput">
+          <span class="btn-text">入力を開始</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== STEP 2: 投稿データ入力（動的生成） ==================== -->
+  <div class="step-panel" id="stepInput">
+    <div class="post-nav" id="postNav"></div>
+    <div class="card" id="inputCard">
+      <div class="step-tag" id="inputStepTag">投稿 1</div>
+      <div class="card-header">
+        <h2>投稿データの入力</h2>
+        <p>Xの分析画面から数値を入力してください</p>
+      </div>
+
+      <div class="field" data-required>
+        <label for="postUrl">投稿URL<span class="tag tag-required">必須</span></label>
+        <input type="url" id="postUrl" placeholder="https://x.com/...">
+        <p class="error-msg">投稿URLを入力してください</p>
+      </div>
+
+      <div class="field" data-required>
+        <label for="postDate">投稿日<span class="tag tag-required">必須</span></label>
+        <input type="date" id="postDate">
+        <p class="error-msg">投稿日を入力してください</p>
+      </div>
+
+      <div class="field" data-required>
+        <label for="postTime">時間帯<span class="tag tag-required">必須</span></label>
+        <select id="postTime">
+          <option value="">選択してください</option>
+          <option value="早朝(5-8時)">早朝(5-8時)</option>
+          <option value="午前(8-12時)">午前(8-12時)</option>
+          <option value="昼(12-14時)">昼(12-14時)</option>
+          <option value="午後(14-18時)">午後(14-18時)</option>
+          <option value="夜(18-22時)">夜(18-22時)</option>
+          <option value="深夜(22-5時)">深夜(22-5時)</option>
+        </select>
+        <p class="error-msg">時間帯を選択してください</p>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="field" data-required>
+        <label for="category">カテゴリ<span class="tag tag-required">必須</span></label>
+        <select id="category">
+          <option value="">選択してください</option>
+          <option value="ノウハウ/Tips">ノウハウ/Tips</option>
+          <option value="事例紹介">事例紹介</option>
+          <option value="お知らせ">お知らせ</option>
+          <option value="日常/雑談">日常/雑談</option>
+          <option value="キャンペーン">キャンペーン</option>
+          <option value="リポスト/引用">リポスト/引用</option>
+          <option value="その他">その他</option>
+        </select>
+        <p class="error-msg">カテゴリを選択してください</p>
+      </div>
+
+      <div class="field" data-required>
+        <label for="format">投稿形式<span class="tag tag-required">必須</span></label>
+        <select id="format">
+          <option value="">選択してください</option>
+          <option value="テキストのみ">テキストのみ</option>
+          <option value="画像付き">画像付き</option>
+          <option value="動画付き">動画付き</option>
+          <option value="リンク付き">リンク付き</option>
+          <option value="アンケート">アンケート</option>
+          <option value="スレッド">スレッド</option>
+        </select>
+        <p class="error-msg">投稿形式を選択してください</p>
+      </div>
+
+      <div class="field" data-required>
+        <label for="theme">投稿テーマ（要約）<span class="tag tag-required">必須</span></label>
+        <input type="text" id="theme" placeholder="例：X運用の基本3ステップ">
+        <p class="error-msg">投稿テーマを入力してください</p>
+      </div>
+
+      <div class="divider"></div>
+
+      <p style="font-size:13px;font-weight:600;color:var(--gray-700);margin-bottom:14px;">数値データ</p>
+      <div class="number-grid">
+        <div class="field" data-required>
+          <label for="imp">インプレッション<span class="tag tag-required">必須</span></label>
+          <input type="number" id="imp" placeholder="0" min="0">
+          <p class="error-msg">入力してください</p>
+        </div>
+        <div class="field" data-required>
+          <label for="eng">エンゲージメント<span class="tag tag-required">必須</span></label>
+          <input type="number" id="eng" placeholder="0" min="0">
+          <p class="error-msg">入力してください</p>
+        </div>
+        <div class="field" data-required>
+          <label for="likes">いいね<span class="tag tag-required">必須</span></label>
+          <input type="number" id="likes" placeholder="0" min="0">
+          <p class="error-msg">入力してください</p>
+        </div>
+        <div class="field" data-required>
+          <label for="rt">RT<span class="tag tag-required">必須</span></label>
+          <input type="number" id="rt" placeholder="0" min="0">
+          <p class="error-msg">入力してください</p>
+        </div>
+        <div class="field" data-required>
+          <label for="reply">リプライ<span class="tag tag-required">必須</span></label>
+          <input type="number" id="reply" placeholder="0" min="0">
+          <p class="error-msg">入力してください</p>
+        </div>
+        <div class="field" data-required>
+          <label for="quote">引用RT<span class="tag tag-required">必須</span></label>
+          <input type="number" id="quote" placeholder="0" min="0">
+          <p class="error-msg">入力してください</p>
+        </div>
+        <div class="field" data-required>
+          <label for="bookmark">ブックマーク<span class="tag tag-required">必須</span></label>
+          <input type="number" id="bookmark" placeholder="0" min="0">
+          <p class="error-msg">入力してください</p>
+        </div>
+        <div class="field" data-required>
+          <label for="profileClick">プロフクリック<span class="tag tag-required">必須</span></label>
+          <input type="number" id="profileClick" placeholder="0" min="0">
+          <p class="error-msg">入力してください</p>
+        </div>
+        <div class="field">
+          <label for="linkClick">リンククリック<span class="tag tag-optional">任意</span></label>
+          <input type="number" id="linkClick" placeholder="0" min="0">
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="field">
+        <label for="factor">伸びた要因 / 伸びなかった要因<span class="tag tag-optional">任意</span></label>
+        <textarea id="factor" rows="2" placeholder="例：トレンドに乗れた、画像が目を引いた、時間帯が良かった"></textarea>
+      </div>
+
+      <!-- 自動算出結果プレビュー -->
+      <div class="result-card" id="resultPreview" style="display:none;">
+        <h3>AUTO CALCULATED</h3>
+        <div class="result-grid">
+          <div class="result-item">
+            <div class="label">ENG率</div>
+            <div class="value" id="previewEngRate">-</div>
+          </div>
+          <div class="result-item">
+            <div class="label">プロフCL率</div>
+            <div class="value" id="previewProfRate">-</div>
+          </div>
+          <div class="result-item">
+            <div class="label">スコア</div>
+            <div class="value" id="previewScore">-</div>
+          </div>
+          <div class="result-item">
+            <div class="label">判定</div>
+            <div class="value" id="previewGrade">-</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="btn-area">
+        <button type="button" class="btn btn-secondary" id="inputBack">戻る</button>
+        <button type="button" class="btn btn-primary" id="inputNext">
+          <span class="btn-text">次の投稿へ</span>
+          <span class="spinner"></span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<!-- ===== Completion ===== -->
+<div class="completion container" id="completionScreen">
+  <div class="completion-icon">
+    <svg viewBox="0 0 24 24" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="20 6 9 17 4 12"></polyline>
+    </svg>
+  </div>
+  <h2 id="completionTitle">データを登録しました</h2>
+  <p id="completionMsg"></p>
+  <div id="allResults"></div>
+</div>
+
+<footer class="footer">&copy; 2026 MIGIUDE</footer>
+
+<script>
+(function() {
+  // ★ Google Apps Script URL（デプロイ後に設定）
+  var GAS_URL = 'https://script.google.com/macros/s/AKfycbzv0Ex-M3QNpHOxJV0LEj7G8-LlrpoSFdHr0mpbwaTgR58VxPav8AwXxwcxinoI2qF4kQ/exec';
+
+  var postCount = 1;
+  var currentPost = 0;
+  var allPostData = [];
+
+  // DOM
+  var heroEl = document.getElementById('heroSection');
+  var progressEl = document.getElementById('progressSection');
+  var formContainer = document.getElementById('formContainer');
+  var completion = document.getElementById('completionScreen');
+
+  var stepCount = document.getElementById('stepCount');
+  var stepInput = document.getElementById('stepInput');
+
+  // ── 投稿数カウンター ──
+  var countEl = document.getElementById('postCount');
+  document.getElementById('countMinus').addEventListener('click', function() {
+    if (postCount > 1) { postCount--; countEl.textContent = postCount; }
+  });
+  document.getElementById('countPlus').addEventListener('click', function() {
+    if (postCount < 20) { postCount++; countEl.textContent = postCount; }
+  });
+
+  // ── 入力開始 ──
+  document.getElementById('startInput').addEventListener('click', function() {
+    currentPost = 0;
+    allPostData = [];
+    // 昨日の日付をデフォルトセット
+    var yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    document.getElementById('postDate').value = yesterday.toISOString().split('T')[0];
+
+    stepCount.classList.remove('active');
+    stepInput.classList.add('active');
+    updatePostUI();
+    updateProgress();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+
+  // ── 投稿UI更新 ──
+  function updatePostUI() {
+    document.getElementById('inputStepTag').textContent = '投稿 ' + (currentPost + 1) + ' / ' + postCount;
+
+    // ボタンテキスト
+    var nextBtn = document.getElementById('inputNext');
+    if (currentPost === postCount - 1) {
+      nextBtn.querySelector('.btn-text').textContent = '送信する';
+    } else {
+      nextBtn.querySelector('.btn-text').textContent = '次の投稿へ';
+    }
+
+    // ドットナビ
+    var nav = document.getElementById('postNav');
+    nav.innerHTML = '';
+    for (var i = 0; i < postCount; i++) {
+      var dot = document.createElement('div');
+      dot.className = 'post-dot';
+      if (i < currentPost) dot.classList.add('done');
+      if (i === currentPost) dot.classList.add('active');
+      nav.appendChild(dot);
+    }
+
+    // 結果プレビュー非表示
+    document.getElementById('resultPreview').style.display = 'none';
+  }
+
+  // ── プログレス更新 ──
+  function updateProgress() {
+    var total = postCount;
+    var current = currentPost + 1;
+    var pct = Math.round((current / (total + 1)) * 100);
+    document.getElementById('progressFill').style.width = pct + '%';
+    document.getElementById('progressPct').textContent = pct + '%';
+    document.getElementById('progressInfo').innerHTML = '投稿 <span>' + current + '</span> / <span>' + total + '</span>';
+  }
+
+  // ── リアルタイムプレビュー ──
+  var impEl = document.getElementById('imp');
+  var engEl = document.getElementById('eng');
+  var profEl = document.getElementById('profileClick');
+
+  function updatePreview() {
+    var imp = parseInt(impEl.value) || 0;
+    var eng = parseInt(engEl.value) || 0;
+    var prof = parseInt(profEl.value) || 0;
+
+    if (imp > 0) {
+      var engRate = (eng / imp * 100);
+      var profRate = (prof / imp * 100);
+      var score = (engRate * 40 + profRate * 60) / 100;
+      var grade = score >= 5 ? 'S' : score >= 3 ? 'A' : score >= 1.5 ? 'B' : 'C';
+      var gradeClass = 'grade-' + grade.toLowerCase();
+
+      document.getElementById('previewEngRate').textContent = engRate.toFixed(2) + '%';
+      document.getElementById('previewProfRate').textContent = profRate.toFixed(2) + '%';
+      document.getElementById('previewScore').textContent = score.toFixed(2);
+
+      var gradeEl = document.getElementById('previewGrade');
+      gradeEl.textContent = grade;
+      gradeEl.className = 'value ' + gradeClass;
+
+      document.getElementById('resultPreview').style.display = 'block';
+    } else {
+      document.getElementById('resultPreview').style.display = 'none';
+    }
+  }
+
+  impEl.addEventListener('input', updatePreview);
+  engEl.addEventListener('input', updatePreview);
+  profEl.addEventListener('input', updatePreview);
+
+  // ── バリデーション ──
+  function validateInput() {
+    var valid = true;
+    var card = document.getElementById('inputCard');
+    card.querySelectorAll('.field.error').forEach(function(f) { f.classList.remove('error'); });
+
+    card.querySelectorAll('.field[data-required]').forEach(function(field) {
+      var input = field.querySelector('input, select, textarea');
+      if (input && !input.value.trim()) {
+        field.classList.add('error');
+        valid = false;
+      }
+      if (input && input.type === 'number' && input.hasAttribute('min')) {
+        if (input.value === '' || parseInt(input.value) < 0) {
+          field.classList.add('error');
+          valid = false;
+        }
+      }
+    });
+
+    if (!valid) {
+      var firstErr = card.querySelector('.field.error');
+      if (firstErr) firstErr.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+    return valid;
+  }
+
+  // ── データ収集 ──
+  function collectPostData() {
+    var imp = parseInt(document.getElementById('imp').value) || 0;
+    var eng = parseInt(document.getElementById('eng').value) || 0;
+    var prof = parseInt(document.getElementById('profileClick').value) || 0;
+
+    var engRate = imp > 0 ? (eng / imp * 100) : 0;
+    var profRate = imp > 0 ? (prof / imp * 100) : 0;
+    var score = (engRate * 40 + profRate * 60) / 100;
+    var grade = score >= 5 ? 'S' : score >= 3 ? 'A' : score >= 1.5 ? 'B' : 'C';
+
+    var postDate = document.getElementById('postDate').value;
+    var dayNames = ['日', '月', '火', '水', '木', '金', '土'];
+    var dayOfWeek = postDate ? dayNames[new Date(postDate).getDay()] : '';
+
+    return {
+      postDate: postDate,
+      dayOfWeek: dayOfWeek,
+      postTime: document.getElementById('postTime').value,
+      category: document.getElementById('category').value,
+      format: document.getElementById('format').value,
+      theme: document.getElementById('theme').value.trim(),
+      postUrl: document.getElementById('postUrl').value.trim(),
+      imp: imp,
+      eng: eng,
+      likes: parseInt(document.getElementById('likes').value) || 0,
+      rt: parseInt(document.getElementById('rt').value) || 0,
+      reply: parseInt(document.getElementById('reply').value) || 0,
+      quote: parseInt(document.getElementById('quote').value) || 0,
+      bookmark: parseInt(document.getElementById('bookmark').value) || 0,
+      profileClick: prof,
+      linkClick: parseInt(document.getElementById('linkClick').value) || 0,
+      engRate: engRate.toFixed(2),
+      profRate: profRate.toFixed(2),
+      score: score.toFixed(2),
+      grade: grade,
+      factor: document.getElementById('factor').value.trim()
+    };
+  }
+
+  // ── フォームリセット ──
+  function resetForm() {
+    var fields = ['postUrl', 'postTime', 'category', 'format', 'theme',
+      'imp', 'eng', 'likes', 'rt', 'reply', 'quote', 'bookmark',
+      'profileClick', 'linkClick', 'factor'];
+    fields.forEach(function(id) {
+      var el = document.getElementById(id);
+      if (el) el.value = el.tagName === 'SELECT' ? '' : '';
+    });
+    document.getElementById('resultPreview').style.display = 'none';
+    document.getElementById('inputCard').querySelectorAll('.field.error').forEach(function(f) {
+      f.classList.remove('error');
+    });
+  }
+
+  // ── 戻るボタン ──
+  document.getElementById('inputBack').addEventListener('click', function() {
+    if (currentPost === 0) {
+      stepInput.classList.remove('active');
+      stepCount.classList.add('active');
+    } else {
+      // 前の投稿のデータを復元
+      currentPost--;
+      var prev = allPostData.pop();
+      restoreForm(prev);
+      updatePostUI();
+      updateProgress();
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+
+  function restoreForm(data) {
+    document.getElementById('postUrl').value = data.postUrl;
+    document.getElementById('postDate').value = data.postDate;
+    document.getElementById('postTime').value = data.postTime;
+    document.getElementById('category').value = data.category;
+    document.getElementById('format').value = data.format;
+    document.getElementById('theme').value = data.theme;
+    document.getElementById('imp').value = data.imp;
+    document.getElementById('eng').value = data.eng;
+    document.getElementById('likes').value = data.likes;
+    document.getElementById('rt').value = data.rt;
+    document.getElementById('reply').value = data.reply;
+    document.getElementById('quote').value = data.quote;
+    document.getElementById('bookmark').value = data.bookmark;
+    document.getElementById('profileClick').value = data.profileClick;
+    document.getElementById('linkClick').value = data.linkClick || '';
+    document.getElementById('factor').value = data.factor || '';
+    updatePreview();
+  }
+
+  // ── 次へ / 送信 ──
+  document.getElementById('inputNext').addEventListener('click', function() {
+    if (!validateInput()) return;
+
+    var data = collectPostData();
+    allPostData.push(data);
+
+    if (currentPost < postCount - 1) {
+      // 次の投稿へ
+      currentPost++;
+      resetForm();
+      updatePostUI();
+      updateProgress();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+      // 全投稿完了 → 送信
+      var btn = document.getElementById('inputNext');
+      btn.classList.add('loading');
+      btn.disabled = true;
+      submitAll(function() {
+        btn.classList.remove('loading');
+        btn.disabled = false;
+        showCompletion();
+      });
+    }
+  });
+
+  // ── 送信 ──
+  function submitAll(callback) {
+    if (!GAS_URL) {
+      // GAS未設定の場合はスキップ
+      if (callback) callback();
+      return;
+    }
+
+    fetch(GAS_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ posts: allPostData })
+    })
+    .then(function() { if (callback) callback(); })
+    .catch(function() {
+      alert('送信エラーが発生しました。再度お試しください。');
+    });
+  }
+
+  // ── 完了画面 ──
+  function showCompletion() {
+    formContainer.style.display = 'none';
+    heroEl.style.display = 'none';
+    progressEl.style.display = 'none';
+
+    var msg = allPostData.length + '件の投稿データをスプレッドシートに登録しました。';
+    document.getElementById('completionMsg').textContent = msg;
+
+    // 全投稿の結果カード表示
+    var resultsHtml = '';
+    allPostData.forEach(function(d, i) {
+      var gradeClass = 'grade-' + d.grade.toLowerCase();
+      resultsHtml += '<div class="result-card" style="margin-top:12px;">' +
+        '<h3>投稿 ' + (i + 1) + ' — ' + d.theme + '</h3>' +
+        '<div class="result-grid">' +
+        '<div class="result-item"><div class="label">ENG率</div><div class="value">' + d.engRate + '%</div></div>' +
+        '<div class="result-item"><div class="label">プロフCL率</div><div class="value">' + d.profRate + '%</div></div>' +
+        '<div class="result-item"><div class="label">スコア</div><div class="value">' + d.score + '</div></div>' +
+        '<div class="result-item"><div class="label">判定</div><div class="value ' + gradeClass + '">' + d.grade + '</div></div>' +
+        '</div></div>';
+    });
+    document.getElementById('allResults').innerHTML = resultsHtml;
+
+    completion.classList.add('show');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+})();
+</script>
+</body>
+</html>
