@@ -437,19 +437,52 @@ body {
     // 空のままなら記録は行われません。
     TRACK_URL: '',
 
-    // 流入元の既定値（?ref= が付いていないときに使う名前）
+    // 流入元の既定値（?ref= もリファラ判定も効かなかったときの名前）
     DEFAULT_REF: 'direct'
   };
 
-  // ── 流入元（?ref=）の取得 ──────────────────────────────
-  // 記事ごとにリンクを変えて貼ると、どの記事から来たか分かります。
-  //   例) https://dakuiyongpu2-wq.github.io/x-analytics/line/?ref=article_0818
+  // ── 流入元タグ（ref）の自動付与 ──────────────────────────
+  // 優先順位:
+  //   1. URLの ?ref=xxx （記事ごとに手動で指定したいとき）
+  //   2. 同じセッションで既に付いたタグ（回遊してもタグを保持）
+  //   3. リファラからの自動判定（?ref= を付け忘れてもタグが付く）
+  //   4. CONFIG.DEFAULT_REF
+  var REFERRER_MAP = [
+    { test: /(^|\.)(x\.com|twitter\.com|t\.co)$/i, tag: 'x' },
+    { test: /(^|\.)(instagram\.com|l\.instagram\.com)$/i, tag: 'instagram' },
+    { test: /(^|\.)(tiktok\.com)$/i, tag: 'tiktok' },
+    { test: /(^|\.)(youtube\.com|youtu\.be)$/i, tag: 'youtube' },
+    { test: /(^|\.)(note\.com)$/i, tag: 'note' },
+    { test: /(^|\.)(google\.[a-z.]+|bing\.com|yahoo\.co\.jp)$/i, tag: 'search' }
+  ];
+
+  function sanitizeRef(v) {
+    // 記録先に流す値なので、英数と - _ . のみ・32文字までに正規化する
+    return String(v).replace(/[^A-Za-z0-9_.-]/g, '_').slice(0, 32);
+  }
+
+  function refFromReferrer() {
+    var r = document.referrer;
+    if (!r) return '';
+    var host;
+    try { host = new URL(r).hostname; } catch (e) { return ''; }
+    if (host === window.location.hostname) return '';
+    for (var i = 0; i < REFERRER_MAP.length; i++) {
+      if (REFERRER_MAP[i].test.test(host)) return REFERRER_MAP[i].tag;
+    }
+    return sanitizeRef('web_' + host.replace(/^www\./, ''));
+  }
+
   function getRef() {
     var m = window.location.search.match(/[?&]ref=([^&]+)/);
-    var ref = m ? decodeURIComponent(m[1]) : '';
+    var ref = '';
+    if (m) {
+      try { ref = sanitizeRef(decodeURIComponent(m[1])); } catch (e) { ref = sanitizeRef(m[1]); }
+    }
     if (!ref) {
       try { ref = window.sessionStorage.getItem('migiude_ref') || ''; } catch (e) {}
     }
+    if (!ref) ref = refFromReferrer();
     if (!ref) ref = CONFIG.DEFAULT_REF;
     try { window.sessionStorage.setItem('migiude_ref', ref); } catch (e) {}
     return ref;
